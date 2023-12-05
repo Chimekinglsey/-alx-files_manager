@@ -1,5 +1,8 @@
-import { app } from '../server'
-import { appController } from '../controllers/AppController'
+const express = require('express');
+const appController = require('../controllers/AppController');
 
-app.get('/status', appController.getStatus())
-app.get('/stat', appController.getStats())
+const router = express.Router();
+router.get('/status', appController.getStatus);
+router.get('/stat', appController.getStats);
+
+module.exports = router;
