@@ -5,16 +5,16 @@ class DBClient {
     this.host = process.env.DB_HOST || 'localhost';
     this.port = process.env.DB_PORT || 27017;
     this.database = process.env.DB_DATABASE || 'files_manager';
-    this.uri = `mongodb://${this.host}:${this.port}`;
-    this.client = new MongoClient(this.uri);
-    this.connection = null;
+    this.uri = `mongodb://${this.host}:${this.port}/${this.database}`;
+    this.client = new MongoClient(this.uri, { useNewUrlParser: true, useUnifiedTopology: true });
     this.client.connect();
+    this.connection = this.client.db();
   }
 
   isAlive() {
     try {
-      this.connection = this.client.db(this.database);
-      return this.client.isConnected();
+      const connected = this.client.isConnected();
+      return connected;
     } catch (err) {
       console.error(`Connection failed: ${err}`);
       return false;
@@ -22,11 +22,11 @@ class DBClient {
   }
 
   async nbUsers() {
+    if (!this.connection) {
+      console.log('No connection');
+      throw new Error('No database connection');
+    }
     try {
-      if (!this.connection) {
-        console.log('No connection');
-        throw new Error('No database connection');
-      }
       const collection = await this.connection.collection('users');
       const countAllUser = await collection.countDocuments();
       return countAllUser;
@@ -37,11 +37,11 @@ class DBClient {
   }
 
   async nbFiles() {
+    if (!this.connection) {
+      console.log('No connection');
+      throw new Error('No database connection');
+    }
     try {
-      if (!this.connection) {
-        console.log('No connection');
-        throw new Error('No database connection');
-      }
       const collection = await this.connection.collection('files');
       const countAllFile = await collection.countDocuments();
       return countAllFile;

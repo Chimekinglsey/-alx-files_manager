@@ -8,17 +8,18 @@ const appController = {
       const dbStatus = await dbClient.isAlive();
       resp.status(200).json({ redis: redisStatus, db: dbStatus });
     } catch (err) {
-      resp.status(500).json({ error: err });
+      resp.status(500).json({ error: "can't access redis!"});
     }
   },
 
   getStats: async (req, resp) => {
     try {
-      const dbUsers = await redisClient.nbUsers();
+      const dbUsers = await dbClient.nbUsers();
       const dbFiles = await dbClient.nbFiles();
-      resp.status(200).json({ user: dbUsers, files: dbFiles });
+      console.log(dbFiles);
+      resp.status(200).json({ users: dbUsers, files: dbFiles });
     } catch (err) {
-      resp.status(500).json({ error: err });
+      resp.status(500).json({ error: 'Fetching from database failed!'});
     }
   },
 };
