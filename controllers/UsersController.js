@@ -17,8 +17,8 @@ const usersController = {
         resp.status(400).json({ error: 'Already exist' });
       }
       const hashedPassword = sha1(password);
-      const newUser = await dbClient.connection.collection('user').insertOne({ email, password: hashedPassword });
-      resp.status(201).json({ id: newUser.insertedId, email });
+      const newUser = await dbClient.connection.collection('user').insertOne({ email: email, password: hashedPassword });
+      resp.status(201).json({ id: newUser.insertedId, email: email });
     } catch (error) {
       resp.status(500).json({ error: 'Error while trying to add users' });
     }
