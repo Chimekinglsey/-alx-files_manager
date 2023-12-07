@@ -16,17 +16,24 @@ const UsersController = {
         return res.status(400).json({ error: 'Missing password' });
       }
 
+      // Check if email already exists in the database
       const userExists = await dbClient.client.db().collection('users').findOne({ email });
       if (userExists) {
         return res.status(400).json({ error: 'Already exist' });
       }
 
+      // Hash the password using SHA1
       const hashedPassword = sha1(password);
 
+      // Insert new user into the 'users' collection
       const insertUserResult = await dbClient.client
         .db()
         .collection('users')
         .insertOne({ email, password: hashedPassword });
+      // const result = await dbClient.client.db().collection('users')
+      // .insertOne({ email, password: hashedPassword });
+
+      // Return the new user data
       const newUser = { id: insertUserResult.insertedId, email };
       return res.status(201).json(newUser);
     } catch (error) {
@@ -52,6 +59,7 @@ const UsersController = {
 
     const user = await dbClient.client.db().collection('users').findOne({ _id: userIdforMongo });
     if (!user) {
+      // console.log('fiallled');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 

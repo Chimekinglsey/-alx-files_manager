@@ -1,12 +1,15 @@
-// import { express } from 'express';
 const express = require('express');
-const indexRoute = require('./routes/index');
+const route = require('./routes');
 
-const PORT = process.env.PORT || 5000;
 const app = express();
-app.use(express.json());
-app.use('/', indexRoute);
+const port = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Listening at ${PORT}`));
+// Body parsing middleware
+app.use(express.json()); // To parse JSON-encoded bodies
+app.use(express.urlencoded({ extended: true })); // To parse URL-encoded bodies
 
-module.exports = app;
+app.use('/', route);
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
