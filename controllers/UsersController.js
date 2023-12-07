@@ -1,37 +1,37 @@
-const sha1 = require('sha1');
-const dbClient = require('../utils/db');
+import { ObjectId } from 'mongodb';
+import redisClient from '../utils/redis';
+import dbClient from '../utils/db';
+import { hashPassword } from '../utils/password';
 
-const usersController = {
-  postNew: async (req, resp) => {
+class UsersController {
+  static async postNew(req, res) {
     const { email, password } = req.body;
+    if (!email) return (res.status(400).json({ error: 'Missing email' }));
+    if (!password) return (res.status(400).json({ error: 'Missing password' }));
 
-    if (!email) {
-      resp.status(400).json({ error: 'Missing email' });
+    const foundUser = await dbClient.db.collection('users').find({ email }).toArray();
+    if (foundUser.length > 0) return (res.status(400).json({ error: 'Already exist' }));
+    const hashedPassword = hashPassword(password);
+    const newUser = await dbClient.db.collection('users').insertOne({ email, password: hashedPassword });
+    return (res.status(201).json({ id: newUser.ops[0]._id, email: newUser.ops[0].email }));
+  }
+
+  static async getMe(req, res) {
+    const headerValue = req.header('X-Token') || null;
+
+    if (!headerValue || headerValue.length === 0) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    if (!password) {
-      resp.status(400).json({ error: 'Missing password' });
-    }
+    const key = `auth_${headerValue}`;
+    const user = await redisClient.get(key);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    try {
-      const query = email;
-      const emailPresent = await dbClient.connection.collection('user').findOne(query);
+    const dbResult = await dbClient.db.collection('users').findOne({ _id: ObjectId(user) });
+    if (!dbResult) return res.status(401).json({ error: 'Unauthorized' });
 
-      if (emailPresent) {
-        resp.status(400).json({ error: 'Already exists' }); // Corrected error message
-      }
+    return res.status(200).json({ id: user, email: dbResult.email });
+  }
+}
 
-      const hashedPassword = sha1(password);
-      const newUser = await dbClient.connection.collection('user').insertOne({
-        email,
-        password: hashedPassword,
-      });
-
-      resp.status(201).json({ id: newUser.insertedId, email });
-    } catch (error) {
-      resp.status(500).json({ error: 'Error while trying to add users' });
-    }
-  },
-};
-
-module.exports = usersController;
+export default UsersController;
