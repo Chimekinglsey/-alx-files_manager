@@ -14,18 +14,15 @@ const FilesController = {
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    // console.log(token);
     const key = `auth_${token}`;
 
     const userIdFromRedis = await redisClient.get(key);
 
-    const userIdforMongo = new ObjectID(userIdFromRedis);
-    // console.log(userIdFromRedis, userIdforMongo);
+    const userIdfromMongo = new ObjectID(userIdFromRedis);
 
-    const user = await dbClient.client.db().collection('users').findOne({ _id: userIdforMongo });
+    const user = await dbClient.client.db().collection('users').findOne({ _id: userIdfromMongo });
 
     if (!user) {
-      // console.log('user')
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -36,7 +33,6 @@ const FilesController = {
     if (!name) {
       return res.status(400).json({ error: 'Missing name' });
     }
-    // if (!type || !['folder', 'image', 'file'].includes(type))
     if (!type || (type !== 'folder' && type !== 'image' && type !== 'file')) {
       return res.status(400).json({ error: 'Missing type' });
     }
@@ -115,9 +111,9 @@ const FilesController = {
     if (!userIdFromRedis) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const userIdforMongo = new ObjectID(userIdFromRedis);
+    const userIdfromMongo = new ObjectID(userIdFromRedis);
 
-    const user = await dbClient.client.db().collection('users').findOne({ _id: userIdforMongo });
+    const user = await dbClient.client.db().collection('users').findOne({ _id: userIdfromMongo });
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -149,9 +145,9 @@ const FilesController = {
 
     const key = `auth_${token}`;
     const userIdFromRedis = await redisClient.get(key);
-    const userIdforMongo = new ObjectID(userIdFromRedis);
+    const userIdfromMongo = new ObjectID(userIdFromRedis);
 
-    const user = await dbClient.client.db().collection('users').findOne({ _id: userIdforMongo });
+    const user = await dbClient.client.db().collection('users').findOne({ _id: userIdfromMongo });
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -320,13 +316,13 @@ const FilesController = {
         && (!user || user._id.toString() !== fileDocument.userId.toString())) {
       return res.status(404).json({ error: 'Not found' });
     }
+    const filePath = fileDocument.localPath;
 
-    if (fileDocument.type === 'folder') {
-      return res.status(400).json({ error: "A folder doesn't have content" });
+    if (fileDocument.type !== 'folder' && !fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Not found' });
     }
 
-    const filePath = fileDocument.localPath;
-    if (!fs.existsSync(filePath)) {
+    if (fileDocument.type !== 'folder' && !fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'Not found' });
     }
 

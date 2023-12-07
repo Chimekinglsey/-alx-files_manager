@@ -10,17 +10,12 @@ const AuthController = {
     if (!authHeader || !authHeader.startsWith('Basic ')) {
       return res.status(401).send('Unauthorized request');
     }
-
-    // console.log(authHeader); // coding test: was successful
-    // return res.status(200).send('SuccesS'); // coding test: was successful
-
     // remove the 'Basic' part of the Base64 encode string
     const encodedCredential = authHeader.split(' ')[1];
     // console.log(encodedCredential); // : test sucessful
 
     // Decode the Base64 string to get the email and password
     const decodedCredentials = Buffer.from(encodedCredential, 'base64').toString('utf-8');
-    // console.log(decodedCredentials); // : test sucessful
 
     const [email, password] = decodedCredentials.split(':');
 
@@ -35,7 +30,6 @@ const AuthController = {
     const key = `auth_${token}`;
 
     await redisClient.set(key, user._id.toString(), 86400);
-    // await redisClient.client.set(key, user._id.toString(), 'EX', 24 * 60 * 60); // works too
 
     return res.status(200).json({ token });
   },
