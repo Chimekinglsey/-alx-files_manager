@@ -8,7 +8,7 @@ class DBClient {
     this.uri = `mongodb://${this.host}:${this.port}/${this.database}`;
     this.client = new MongoClient(this.uri, { useNewUrlParser: true, useUnifiedTopology: true });
     this.client.connect();
-    this.connection = this.client.db();
+    this.makeRef = this.client.db();
   }
 
   isAlive() {
@@ -22,31 +22,29 @@ class DBClient {
   }
 
   async nbUsers() {
-    if (!this.connection) {
-      console.log('No connection');
-      throw new Error('No database connection');
+    if (!this.makeRef) {
+      throw new Error('No reference made to the database');
     }
     try {
-      const collection = await this.connection.collection('users');
+      const collection = await this.makeRef.collection('users');
       const countAllUser = await collection.countDocuments();
       return countAllUser;
     } catch (err) {
-      console.error(`This Error occurred while counting users doc: ${err}`);
+      //console.error(`This Error occurred while counting users doc: ${err}`);
       throw err;
     }
   }
 
   async nbFiles() {
-    if (!this.connection) {
-      console.log('No connection');
-      throw new Error('No database connection');
+    if (!this.makeRef) {
+      throw new Error('No reference made to database');
     }
     try {
-      const collection = await this.connection.collection('files');
+      const collection = await this.makeRef.collection('files');
       const countAllFile = await collection.countDocuments();
       return countAllFile;
     } catch (err) {
-      console.error(`This Error occurred while counting files doc: ${err}`);
+     // console.error(`This Error occurred while counting files doc: ${err}`);
       throw err;
     }
   }
